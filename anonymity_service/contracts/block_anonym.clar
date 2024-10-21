@@ -17,3 +17,7 @@
 (define-private (is-initialized)
   (var-get initialized))
 
+;; Private function to check if the caller is the contract owner
+(define-private (is-contract-owner)
+  (is-eq tx-sender contract-owner))
+
