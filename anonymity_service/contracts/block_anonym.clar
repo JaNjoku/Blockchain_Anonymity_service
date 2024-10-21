@@ -28,3 +28,11 @@
     (asserts! (not (is-initialized)) err-already-initialized)
     (var-set initialized true)
     (ok true)))
+
+;; Public function to send an anonymous message
+(define-public (send-anonymous-message (content (string-utf8 500)))
+  (let ((message-id (var-get message-counter)))
+    (asserts! (is-initialized) err-not-initialized)
+    (map-set messages message-id {sender: none, content: content})
+    (var-set message-counter (+ message-id u1))
+    (ok message-id)))
