@@ -21,3 +21,10 @@
 (define-private (is-contract-owner)
   (is-eq tx-sender contract-owner))
 
+;; Public function to initialize the contract
+(define-public (initialize)
+  (begin
+    (asserts! (is-contract-owner) err-owner-only)
+    (asserts! (not (is-initialized)) err-already-initialized)
+    (var-set initialized true)
+    (ok true)))
