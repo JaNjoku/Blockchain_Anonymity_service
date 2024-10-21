@@ -12,3 +12,8 @@
 
 ;; Define data maps
 (define-map messages uint {sender: (optional principal), content: (string-utf8 500)})
+
+;; Private function to check if the contract is initialized
+(define-private (is-initialized)
+  (var-get initialized))
+
