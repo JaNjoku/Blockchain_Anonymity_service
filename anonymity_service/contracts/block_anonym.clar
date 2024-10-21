@@ -36,3 +36,7 @@
     (map-set messages message-id {sender: none, content: content})
     (var-set message-counter (+ message-id u1))
     (ok message-id)))
+
+;; Public function to retrieve a message by ID
+(define-read-only (get-message (message-id uint))
+  (map-get? messages message-id))
