@@ -44,3 +44,10 @@
 ;; Public function to get the total number of messages
 (define-read-only (get-message-count)
   (var-get message-counter))
+
+;; Public function for the contract owner to pause the service
+(define-public (pause-service)
+  (begin
+    (asserts! (is-contract-owner) err-owner-only)
+    (var-set initialized false)
+    (ok true)))
