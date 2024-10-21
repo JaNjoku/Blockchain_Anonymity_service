@@ -40,3 +40,7 @@
 ;; Public function to retrieve a message by ID
 (define-read-only (get-message (message-id uint))
   (map-get? messages message-id))
+
+;; Public function to get the total number of messages
+(define-read-only (get-message-count)
+  (var-get message-counter))
