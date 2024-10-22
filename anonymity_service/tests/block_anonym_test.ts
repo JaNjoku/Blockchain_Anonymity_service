@@ -97,3 +97,39 @@ Clarinet.test({
         );
     },
 });
+
+
+Clarinet.test({
+    name: "Ensure that bulk message sending works correctly",
+    async fn(chain: Chain, accounts: Map<string, Account>)
+    {
+        const deployer = accounts.get("deployer")!;
+        const user1 = accounts.get("wallet_1")!;
+
+        // Initialize contract
+        let block = chain.mineBlock([
+            Tx.contractCall(
+                CONTRACT_NAME,
+                "initialize",
+                [],
+                deployer.address
+            )
+        ]);
+
+        // Test sending bulk messages
+        const message1 = "This is the first test message with sufficient length";
+        const message2 = "This is the second test message with sufficient length";
+        block = chain.mineBlock([
+            Tx.contractCall(
+                CONTRACT_NAME,
+                "send-bulk-messages",
+                [
+                    types.utf8(message1),
+                    types.utf8(message2)
+                ],
+                user1.address
+            )
+        ]);
+        assertEquals(block.receipts[0].result, "(ok {first-id: u0, second-id: u1})");
+    },
+});
