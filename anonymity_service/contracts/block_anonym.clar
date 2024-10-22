@@ -4,7 +4,8 @@
 (define-constant contract-owner tx-sender)
 (define-constant min-message-length u10)
 (define-constant max-bulk-messages u5)
-(define-constant deletion-marker "DELETED")
+;; (define-constant deletion-marker "DELETED")                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ")))
+
 
 (define-constant err-owner-only (err u100))
 (define-constant err-already-initialized (err u101))
@@ -112,4 +113,3 @@
     (if (> counter u0)
         (ok (- counter u1))
         (err err-not-initialized))))
-
