@@ -133,3 +133,56 @@ Clarinet.test({
         assertEquals(block.receipts[0].result, "(ok {first-id: u0, second-id: u1})");
     },
 });
+
+Clarinet.test({
+    name: "Ensure that service pause and resume functions work correctly",
+    async fn(chain: Chain, accounts: Map<string, Account>)
+    {
+        const deployer = accounts.get("deployer")!;
+        const user1 = accounts.get("wallet_1")!;
+
+        // Initialize contract
+        let block = chain.mineBlock([
+            Tx.contractCall(
+                CONTRACT_NAME,
+                "initialize",
+                [],
+                deployer.address
+            )
+        ]);
+
+        // Test pausing service
+        block = chain.mineBlock([
+            Tx.contractCall(
+                CONTRACT_NAME,
+                "pause-service",
+                [],
+                deployer.address
+            )
+        ]);
+        assertEquals(block.receipts[0].result, "(ok true)");
+
+        // Test sending message while paused (should fail)
+        const message = "This message should not be accepted";
+        block = chain.mineBlock([
+            Tx.contractCall(
+                CONTRACT_NAME,
+                "send-anonymous-message",
+                [types.utf8(message)],
+                user1.address
+            )
+        ]);
+        assertEquals(block.receipts[0].result, `(err u${ERR_NOT_INITIALIZED})`);
+
+        // Test resuming service
+        block = chain.mineBlock([
+            Tx.contractCall(
+                CONTRACT_NAME,
+                "resume-service",
+                [],
+                deployer.address
+            )
+        ]);
+        assertEquals(block.receipts[0].result, "(ok true)");
+    },
+});
