@@ -86,4 +86,23 @@
       (ok (- end start))
       (err err-invalid-message-count)))
 
+;; Public function to send bulk messages (simplified version)
+(define-public (send-bulk-messages (content-1 (string-utf8 500)) 
+                                 (content-2 (string-utf8 500)))
+  (begin
+    (asserts! (is-initialized) err-not-initialized)
+    (asserts! (and (is-valid-content content-1)
+                   (is-valid-content content-2)) 
+              err-invalid-message-length)
+    (let ((id-1 (var-get message-counter)))
+      (begin
+        (map-set messages id-1 
+                 {sender: none, content: content-1})
+        (var-set message-counter (+ id-1 u1))
+        (let ((id-2 (var-get message-counter)))
+          (begin
+            (map-set messages id-2 
+                     {sender: none, content: content-2})
+            (var-set message-counter (+ id-2 u1))
+            (ok {first-id: id-1, second-id: id-2})))))))
 
