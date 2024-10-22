@@ -52,3 +52,48 @@ Clarinet.test({
         assertEquals(block.receipts[0].result, `(err u${ERR_ALREADY_INITIALIZED})`);
     },
 });
+
+Clarinet.test({
+    name: "Ensure that anonymous message sending works correctly",
+    async fn(chain: Chain, accounts: Map<string, Account>)
+    {
+        const deployer = accounts.get("deployer")!;
+        const user1 = accounts.get("wallet_1")!;
+
+        // Initialize contract
+        let block = chain.mineBlock([
+            Tx.contractCall(
+                CONTRACT_NAME,
+                "initialize",
+                [],
+                deployer.address
+            )
+        ]);
+
+        // Test sending valid message
+        const validMessage = "This is a valid test message with sufficient length";
+        block = chain.mineBlock([
+            Tx.contractCall(
+                CONTRACT_NAME,
+                "send-anonymous-message",
+                [types.utf8(validMessage)],
+                user1.address
+            )
+        ]);
+        assertEquals(block.receipts[0].result, "(ok u0)");
+
+        // Verify message content
+        block = chain.mineBlock([
+            Tx.contractCall(
+                CONTRACT_NAME,
+                "get-message",
+                [types.uint(0)],
+                user1.address
+            )
+        ]);
+        assertEquals(
+            block.receipts[0].result,
+            `(some {content: "${validMessage}", sender: none})`
+        );
+    },
+});
