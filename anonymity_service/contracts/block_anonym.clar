@@ -78,3 +78,12 @@
   (match (map-get? messages message-id)
     message true
     false))
+
+;; Public function to get messages count in a specific range
+(define-read-only (get-messages-count (start uint) (end uint))
+  (if (and (<= start end) 
+           (< end (var-get message-counter)))
+      (ok (- end start))
+      (err err-invalid-message-count)))
+
+
