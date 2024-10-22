@@ -66,3 +66,9 @@
     (asserts! (is-contract-owner) err-owner-only)
     (var-set initialized true)
     (ok true)))
+
+;; Public function to delete a message
+(define-read-only (is-valid-content (content (string-utf8 500)))
+  (let ((content-length (len content)))
+    (and (>= content-length min-message-length)
+         (< content-length u500))))
