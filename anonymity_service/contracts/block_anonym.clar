@@ -72,3 +72,9 @@
   (let ((content-length (len content)))
     (and (>= content-length min-message-length)
          (< content-length u500))))
+
+;; Public function to check if a message exists
+(define-read-only (does-message-exist (message-id uint))
+  (match (map-get? messages message-id)
+    message true
+    false))
