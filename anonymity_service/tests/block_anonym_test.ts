@@ -186,3 +186,66 @@ Clarinet.test({
         assertEquals(block.receipts[0].result, "(ok true)");
     },
 });
+
+Clarinet.test({
+    name: "Ensure that message retrieval functions work correctly",
+    async fn(chain: Chain, accounts: Map<string, Account>)
+    {
+        const deployer = accounts.get("deployer")!;
+        const user1 = accounts.get("wallet_1")!;
+
+        // Initialize contract
+        let block = chain.mineBlock([
+            Tx.contractCall(
+                CONTRACT_NAME,
+                "initialize",
+                [],
+                deployer.address
+            )
+        ]);
+
+        // Send test messages
+        const message = "Test message with sufficient length for testing";
+        block = chain.mineBlock([
+            Tx.contractCall(
+                CONTRACT_NAME,
+                "send-anonymous-message",
+                [types.utf8(message)],
+                user1.address
+            )
+        ]);
+
+        // Test message count
+        block = chain.mineBlock([
+            Tx.contractCall(
+                CONTRACT_NAME,
+                "get-message-count",
+                [],
+                user1.address
+            )
+        ]);
+        assertEquals(block.receipts[0].result, "u1");
+
+        // Test message existence
+        block = chain.mineBlock([
+            Tx.contractCall(
+                CONTRACT_NAME,
+                "does-message-exist",
+                [types.uint(0)],
+                user1.address
+            )
+        ]);
+        assertEquals(block.receipts[0].result, "true");
+
+        // Test get last message ID
+        block = chain.mineBlock([
+            Tx.contractCall(
+                CONTRACT_NAME,
+                "get-last-message-id",
+                [],
+                user1.address
+            )
+        ]);
+        assertEquals(block.receipts[0].result, "(ok u0)");
+    },
+});
