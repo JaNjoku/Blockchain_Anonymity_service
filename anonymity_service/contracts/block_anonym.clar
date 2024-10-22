@@ -106,3 +106,10 @@
             (var-set message-counter (+ id-2 u1))
             (ok {first-id: id-1, second-id: id-2})))))))
 
+;; Public function to get the last valid message ID
+(define-read-only (get-last-message-id)
+  (let ((counter (var-get message-counter)))
+    (if (> counter u0)
+        (ok (- counter u1))
+        (err err-not-initialized))))
+
