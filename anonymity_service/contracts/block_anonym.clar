@@ -34,6 +34,7 @@
     timestamp: uint,
     category: (optional (string-utf8 50)),
     reply-to: (optional uint),
+    reply-depth: uint,
     encrypted: bool
 })
 
@@ -61,7 +62,7 @@
 (define-public (send-anonymous-message (content (string-utf8 500)))
   (let ((message-id (var-get message-counter)))
     (asserts! (is-initialized) err-not-initialized)
-    (map-set messages message-id {sender: none, content: content, timestamp: block-height, category: none, reply-to: none, encrypted: false})
+    (map-set messages message-id {sender: none, content: content, timestamp: block-height, category: none, reply-to: none, reply-depth: u0, encrypted: false})
     (var-set message-counter (+ message-id u1))
     (ok message-id)))
 
@@ -117,12 +118,12 @@
     (let ((id-1 (var-get message-counter)))
       (begin
         (map-set messages id-1 
-                 {sender: none, content: content-1, timestamp: block-height, category: none, reply-to: none, encrypted: false})
+                 {sender: none, content: content-1, timestamp: block-height, category: none, reply-to: none, reply-depth: u0, encrypted: false})
         (var-set message-counter (+ id-1 u1))
         (let ((id-2 (var-get message-counter)))
           (begin
             (map-set messages id-2 
-                     {sender: none, content: content-2, timestamp: block-height, category: none, reply-to: none, encrypted: false})
+                     {sender: none, content: content-2, timestamp: block-height, category: none, reply-to: none, reply-depth: u0, encrypted: false})
             (var-set message-counter (+ id-2 u1))
             (ok {first-id: id-1, second-id: id-2})))))))
 
@@ -161,6 +162,7 @@
                 timestamp: block-height,
                 category: category,
                 reply-to: none,
+                reply-depth: u0,
                 encrypted: encrypted})
       (increment-user-count tx-sender)
       (var-set message-counter (+ message-id u1))
@@ -194,3 +196,43 @@
 
 (define-read-only (get-service-fee)
   (var-get service-fee))
+
+;; Private function to get parent message reply depth
+(define-private (get-parent-depth (parent-id uint))
+  (match (map-get? messages parent-id)
+    parent (get reply-depth parent)
+    u0))
+
+(define-read-only (get-message-depth (message-id uint))
+  (match (map-get? messages message-id)
+    message (get reply-depth message)
+    u0))
+
+(define-public (reply-to-message 
+    (content (string-utf8 500))
+    (parent-id uint)
+    (encrypted bool))
+  (begin
+    (asserts! (is-initialized) err-not-initialized)
+    (asserts! (check-rate-limit tx-sender) err-rate-limit-exceeded)
+    (asserts! (does-message-exist parent-id) err-message-not-found)
+    (let ((parent-depth (get-parent-depth parent-id))
+          (new-depth (+ parent-depth u1)))
+      (asserts! (< new-depth max-reply-depth) err-invalid-reply-depth)
+      (let ((message-id (var-get message-counter)))
+        (map-set messages message-id 
+                 {sender: none,
+                  content: content,
+                  timestamp: block-height,
+                  category: none,
+                  reply-to: (some parent-id),
+                  reply-depth: new-depth,  ;; Store the calculated depth
+                  encrypted: encrypted})
+        (map-set message-replies parent-id 
+                 (unwrap-panic (as-max-len? 
+                   (append (default-to (list) (map-get? message-replies parent-id)) 
+                           message-id) 
+                   u20)))
+        (increment-user-count tx-sender)
+        (var-set message-counter (+ message-id u1))
+        (ok message-id)))))
