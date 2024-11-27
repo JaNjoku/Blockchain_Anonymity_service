@@ -165,3 +165,20 @@
       (increment-user-count tx-sender)
       (var-set message-counter (+ message-id u1))
       (ok message-id))))
+
+
+;; Admin functions
+(define-public (update-service-fee (new-fee uint))
+  (begin
+    (asserts! (is-contract-owner) err-owner-only)
+    (var-set service-fee new-fee)
+    (ok true)))
+
+(define-public (update-rate-limits 
+    (new-window uint) 
+    (new-max-messages uint))
+  (begin
+    (asserts! (is-contract-owner) err-owner-only)
+    (var-set rate-limit-window new-window)
+    (var-set max-messages-per-window new-max-messages)
+    (ok true)))
