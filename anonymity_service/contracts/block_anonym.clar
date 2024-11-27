@@ -132,3 +132,16 @@
     (if (> counter u0)
         (ok (- counter u1))
         (err err-not-initialized))))
+
+
+(define-private (check-rate-limit (user principal))
+  (let ((current-window (/ block-height (var-get rate-limit-window)))
+        (current-count (default-to u0 (map-get? user-message-count {user: user, window: current-window}))))
+    (< current-count (var-get max-messages-per-window))))
+
+(define-private (increment-user-count (user principal))
+  (let ((current-window (/ block-height (var-get rate-limit-window)))
+        (current-count (default-to u0 (map-get? user-message-count {user: user, window: current-window}))))
+    (map-set user-message-count 
+             {user: user, window: current-window}
+             (+ current-count u1))))
