@@ -182,3 +182,7 @@
     (var-set rate-limit-window new-window)
     (var-set max-messages-per-window new-max-messages)
     (ok true)))
+
+(define-read-only (get-message-replies (message-id uint))
+  (map-get? message-replies message-id))
+
