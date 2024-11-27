@@ -191,3 +191,6 @@
     (default-to u0 
       (map-get? user-message-count 
                 {user: user, window: current-window}))))
+
+(define-read-only (get-service-fee)
+  (var-get service-fee))
