@@ -186,3 +186,8 @@
 (define-read-only (get-message-replies (message-id uint))
   (map-get? message-replies message-id))
 
+(define-read-only (get-user-message-count (user principal))
+  (let ((current-window (/ block-height (var-get rate-limit-window))))
+    (default-to u0 
+      (map-get? user-message-count 
+                {user: user, window: current-window}))))
