@@ -145,3 +145,23 @@
     (map-set user-message-count 
              {user: user, window: current-window}
              (+ current-count u1))))
+
+(define-public (send-anonymous-message-with-category 
+    (content (string-utf8 500))
+    (category (optional (string-utf8 50)))
+    (encrypted bool))
+  (begin
+    (asserts! (is-initialized) err-not-initialized)
+    (asserts! (check-rate-limit tx-sender) err-rate-limit-exceeded)
+    (asserts! (is-valid-content content) err-invalid-message-length)
+    (let ((message-id (var-get message-counter)))
+      (map-set messages message-id 
+               {sender: none,
+                content: content,
+                timestamp: block-height,
+                category: category,
+                reply-to: none,
+                encrypted: encrypted})
+      (increment-user-count tx-sender)
+      (var-set message-counter (+ message-id u1))
+      (ok message-id))))
